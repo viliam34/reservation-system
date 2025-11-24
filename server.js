@@ -60,14 +60,6 @@ app.set("view engine", "ejs")
 
 app.use(express.static('public/'));
 
-app.use('/styles', express.static('public/styles', {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.css')) {
-      res.setHeader('Content-Type', 'text/css');
-    }
-  }
-}));
-
 
 app.use(cookieParser())
 app.use(express.urlencoded({extended:false}))
