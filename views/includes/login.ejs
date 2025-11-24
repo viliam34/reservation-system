@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link  rel="stylesheet" type="text/css" href="/styles/login.css">
+  <link  rel="stylesheet" type="text/css" href="/styles/dashboard.css">
+  
+</head>
+<body>
+  <div class="login-container" style="background: #fff; padding: 2rem 2.5rem; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); max-width: 400px; margin: 0 auto;">
+    <h1 style="color: #007bff; margin-bottom: 1.5rem;">Login</h1>
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div style="color: #dc3545; margin-bottom: 1rem; font-weight: 500;">
+        <% errors.forEach(function(error) { %>
+          <div><%= error %></div>
+        <% }) %>
+      </div>
+    <% } %>
+    <form action="/login" method="POST">
+      <label for="username" style="display:block; margin-bottom:0.3rem; font-weight:bold;">Username:</label>
+      <input type="text" id="username" name="username" required style="width:100%; padding:0.8rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:5px; font-size:1rem;">
+
+      <label for="password" style="display:block; margin-bottom:0.3rem; font-weight:bold;">Password:</label>
+      <input type="password" id="password" name="password" required style="width:100%; padding:0.8rem; margin-bottom:1.5rem; border:1px solid #ccc; border-radius:5px; font-size:1rem;">
+
+      <button type="submit" style="background: #007bff; color: #fff; border: none; border-radius: 5px; padding: 0.8rem 1.5rem; font-size: 1rem; cursor: pointer; font-weight: 500; transition: background 0.3s; width:100%;">Login</button>
+    </form>
+  </div>
+</body>
+</html>

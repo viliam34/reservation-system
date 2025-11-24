@@ -1,0 +1,6 @@
+login page
+databazu napoj
+tvorba rezervacii
+delete rezervacii
+daj tomu nejaky vzhlad
+tie datumy v hlavnom tomto by nemuseli byt total humus

@@ -1,0 +1,57 @@
+<form action="/reserve" method="POST" id="reservation-form">
+  <nav class="sidebar" style="max-width: 320px; margin: 0 auto; padding: 1rem; box-sizing: border-box;">
+    <label for="building" style="font-size:1rem; display:block; margin-bottom:0.3rem;">Building:</label>
+    <select id="building" name="building" style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem;">
+      <option value="building1" <%= building === 'building1' ? 'selected' : '' %>>Building 1</option>
+      <option value="building2" <%= building === 'building2' ? 'selected' : '' %>>Building 2</option>
+      <option value="building3" <%= building === 'building3' ? 'selected' : '' %>>Building 3</option>
+    </select>
+    <label for="floor" style="font-size:1rem; display:block; margin-bottom:0.3rem;">Floor:</label>
+    <select id="floor" name="floor" style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem;">
+      <option value="floor1" <%= floor === 'floor1' ? 'selected' : '' %>>Floor 1</option>
+      <option value="floor2" <%= floor === 'floor2' ? 'selected' : '' %>>Floor 2</option>
+      <option value="floor3" <%= floor === 'floor3' ? 'selected' : '' %>>Floor 3</option>
+    </select>
+    <label for="room" style="font-size:1rem; display:block; margin-bottom:0.3rem;">Room:</label>
+    <select id="room" name="room" style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem;">
+      <option value="room1" <%= room === 'room1' ? 'selected' : '' %>>Room 1</option>
+      <option value="room2" <%= room === 'room2' ? 'selected' : '' %>>Room 2</option>
+      <option value="room3" <%= room === 'room3' ? 'selected' : '' %>>Room 3</option>
+    </select>
+    <label for="reservation-name" style="font-size:1rem; display:block; margin-bottom:0.3rem;">Reservation For (Name):</label>
+    <input type="text" id="reservation-name" name="reservation_name" required style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:5px;">
+    <label for="contact-info" style="font-size:1rem; display:block; margin-bottom:0.3rem;">Contact Info:</label>
+    <input type="text" id="contact-info" name="contact_info" required placeholder="Phone or Email" style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem; border:1px solid #ccc; border-radius:5px;">
+    <label for="start-time" style="font-size:1rem; display:block; margin-bottom:0.3rem;">Start Time:</label>
+    <select id="start-time" name="start_time" style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem;">
+      <% for(let h=6; h<=22; h++) { %>
+        <option value="<%= (h<10?'0':'')+h %>:00"><%= (h<10?'0':'')+h %>:00</option>
+        <option value="<%= (h<10?'0':'')+h %>:30"><%= (h<10?'0':'')+h %>:30</option>
+      <% } %>
+    </select>
+    <label for="end-time" style="font-size:1rem; display:block; margin-bottom:0.3rem;">End Time:</label>
+    <select id="end-time" name="end_time" style="width:100%; font-size:1rem; padding:0.7rem; margin-bottom:1rem;">
+      <% for(let h=6; h<=22; h++) { %>
+        <option value="<%= (h<10?'0':'')+h %>:00"><%= (h<10?'0':'')+h %>:00</option>
+        <option value="<%= (h<10?'0':'')+h %>:30"><%= (h<10?'0':'')+h %>:30</option>
+      <% } %>
+    </select>
+    <div style="margin: 1.5rem 0;">
+      <label style="font-weight: bold;">Date Selection:</label>
+      <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+        <input type="radio" id="single-date" name="date-mode" value="single" checked>
+        <label for="single-date">Single Date</label>
+        <input type="radio" id="multi-date" name="date-mode" value="multi">
+        <label for="multi-date">Multiple Dates</label>
+      </div>
+      <input type="date" id="date" name="date" min="<%= new Date().toISOString().split('T')[0] %>" required style="width: 100%; padding: 0.7rem; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 0.5rem;">
+      <div id="multi-date-fields" style="display: none;">
+        <label for="start-date" style="margin-top:0.5rem;">Start Date:</label>
+        <input type="date" id="start-date" name="start-date" min="<%= new Date().toISOString().split('T')[0] %>" style="width: 100%; padding: 0.7rem; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 0.5rem;">
+        <label for="end-date" style="margin-top:0.5rem;">End Date:</label>
+        <input type="date" id="end-date" name="end-date" min="<%= new Date().toISOString().split('T')[0] %>" style="width: 100%; padding: 0.7rem; border-radius: 5px; border: 1px solid #ccc; margin-bottom: 0.5rem;">
+      </div>
+    </div>
+    <button type="submit" id="confirm-btn" style="background:#28a745; color:#fff; border:none; border-radius:5px; padding:0.7rem 1.5rem; font-size:1rem; margin-top:1rem; cursor:pointer; width:100%;">Confirm Reservation</button>
+  </nav>
+</form>

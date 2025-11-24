@@ -1,0 +1,63 @@
+<div class="sidebar" style="max-width: 320px; margin: 0 auto; padding: 1rem; box-sizing: border-box; max-height: 80vh; overflow-y: auto;">
+  <h3 style="margin: 0 0 1rem 0; color: #495057; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem;">Reservation Details</h3>
+  
+  <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid #dee2e6;">
+    <div style="margin-bottom: 0.75rem;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Location:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;"><%= selectedReservation.building %> - <%= selectedReservation.floor %> - <%= selectedReservation.room %></span>
+    </div>
+    
+    <div style="margin-bottom: 0.75rem;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Date Range:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;">
+        <% if (selectedReservation.start_date === selectedReservation.end_date) { %>
+          <%= new Date(selectedReservation.start_date).toLocaleDateString() %>
+        <% } else { %>
+          <%= new Date(selectedReservation.start_date).toLocaleDateString() %> - <%= new Date(selectedReservation.end_date).toLocaleDateString() %>
+        <% } %>
+      </span>
+    </div>
+    
+    <div style="margin-bottom: 0.75rem;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Time:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;"><%= selectedReservation.start_time %> - <%= selectedReservation.end_time %></span>
+    </div>
+    
+    <div style="margin-bottom: 0.75rem;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Reserved by:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;"><%= selectedReservation.username || 'Unknown User' %></span>
+    </div>
+    
+    <div style="margin-bottom: 0.75rem;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Reservation Name:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;"><%= selectedReservation.reservation_name %></span>
+    </div>
+    
+    <div style="margin-bottom: 0.75rem;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Contact Info:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;"><%= selectedReservation.contact_info %></span>
+    </div>
+    
+    <div style="margin-bottom: 0;">
+      <strong style="color: #495057; display: block; margin-bottom: 0.25rem;">Reservation ID:</strong>
+      <span style="color: #6c757d; font-size: 0.9rem;">#<%= selectedReservation.id %></span>
+    </div>
+  </div>
+  
+  <!-- Action Buttons -->
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+    <button onclick="editReservation(<%= selectedReservation.id %>)" 
+            style="flex: 1; background: #007bff; color: white; border: none; border-radius: 5px; padding: 0.75rem; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s;">
+      Edit Reservation
+    </button>
+    <button onclick="deleteReservation(<%= selectedReservation.id %>)" 
+            style="flex: 1; background: #dc3545; color: white; border: none; border-radius: 5px; padding: 0.75rem; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s;">
+      Delete
+    </button>
+  </div>
+  
+  <button onclick="goBackToDashboard()" 
+          style="width: 100%; background: #6c757d; color: white; border: none; border-radius: 5px; padding: 0.75rem; font-size: 0.875rem; cursor: pointer; transition: background-color 0.2s;">
+    Back to Calendar
+  </button>
+</div>

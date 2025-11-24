@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Room Reservations</title>
+  <link rel="stylesheet" href="/styles/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="navbar">
+  <h1>Room Reservations</h1>
+  <nav>
+    <a href="#" onclick="showNewReservation(); return false;">New Reservation</a>
+  </nav>
+  <form action="/logout" method="GET" style="display:inline;">
+    <button type="submit" style="background:#dc3545; color:#fff; border:none; border-radius:5px; padding:0.5rem 1rem; font-size:1rem; cursor:pointer;">Logout</button>
+  </form>
+</header>
+<main class="container">
+  <% if (typeof building === 'undefined') { var building = 'building1'; } %>
+  <% if (typeof floor === 'undefined') { var floor = 'floor1'; } %>
+  <% if (typeof room === 'undefined') { var room = 'room1'; } %>
+  <aside class="sidebar-container">
+    <% if (sidebarView === 'new-reservation') { %>
+      <%- include('./includes/reservation-form') %>
+    <% } else if (sidebarView === 'edit-reservation' && selectedReservation) { %>
+      <%- include('./includes/edit-reservation-form') %>
+    <% } else if (sidebarView === 'reservation-info' && selectedReservation) { %>
+      <%- include('./includes/reservation-info') %>
+    <% } else { %>
+      <div class="sidebar" style="max-width: 320px; margin: 0 auto; padding: 1rem; box-sizing: border-box;">
+        <!-- Room Selection Controls -->
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid #dee2e6;">
+          <h4 style="margin: 0 0 1rem 0; color: #495057; font-size: 1rem;">Current Room</h4>
+          <form id="roomSelection" style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <div>
+              <label for="buildingSelect" style="display: block; font-size: 0.875rem; color: #6c757d; margin-bottom: 0.25rem;">Building:</label>
+              <select id="buildingSelect" name="building" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.875rem;">
+                <option value="building1" <%= building === 'building1' ? 'selected' : '' %>>Building 1</option>
+                <option value="building2" <%= building === 'building2' ? 'selected' : '' %>>Building 2</option>
+                <option value="building3" <%= building === 'building3' ? 'selected' : '' %>>Building 3</option>
+              </select>
+            </div>
+            <div>
+              <label for="floorSelect" style="display: block; font-size: 0.875rem; color: #6c757d; margin-bottom: 0.25rem;">Floor:</label>
+              <select id="floorSelect" name="floor" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.875rem;">
+                <option value="floor1" <%= floor === 'floor1' ? 'selected' : '' %>>Floor 1</option>
+                <option value="floor2" <%= floor === 'floor2' ? 'selected' : '' %>>Floor 2</option>
+                <option value="floor3" <%= floor === 'floor3' ? 'selected' : '' %>>Floor 3</option>
+              </select>
+            </div>
+            <div>
+              <label for="roomSelect" style="display: block; font-size: 0.875rem; color: #6c757d; margin-bottom: 0.25rem;">Room:</label>
+              <select id="roomSelect" name="room" style="width: 100%; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 4px; font-size: 0.875rem;">
+                <option value="room1" <%= room === 'room1' ? 'selected' : '' %>>Room 1</option>
+                <option value="room2" <%= room === 'room2' ? 'selected' : '' %>>Room 2</option>
+                <option value="room3" <%= room === 'room3' ? 'selected' : '' %>>Room 3</option>
+              </select>
+            </div>
+          </form>
+        </div>
+      </div>
+    <% } %>
+  </aside>
+  <section class="calendar">
+    <div class="month">
+      <ul>
+        <li class="prev" onclick="changeMonth(-1)">&#10094;</li>
+          <li class="current-month" id="current-month-label"></li>
+        <li class="next" onclick="changeMonth(1)">&#10095;</li>
+      </ul>
+    </div>
+    <ul class="weekdays">
+      <li>Mo</li>
+      <li>Tu</li>
+      <li>We</li>
+      <li>Th</li>
+      <li>Fr</li>
+      <li>Sa</li>
+      <li>Su</li>
+    </ul>
+    <ul class="days" id="calendar-days">
+      <!-- Calendar days will be generated dynamically by JavaScript -->
+    </ul>
+    <section class="hours">
+      <h2>Hours</h2>
+      <button id="clear-hours">Clear Hours</button>
+      <ul>
+        <% for(let h=1; h<=24; h++) { %>
+          <li><%= h %></li>
+        <% } %>
+      </ul>
+    </section>
+  </section>
+</main>
+<script>
+  // Calendar state - initialize from URL params or current date
+  const urlParams = new URLSearchParams(window.location.search);
+  let currentCalendarMonth = parseInt(urlParams.get('month')) || new Date().getMonth();
+  let currentCalendarYear = parseInt(urlParams.get('year')) || new Date().getFullYear();
+  
+  // Store reservations data from server
+  const reservationsData = <%- JSON.stringify(reservations || []) %>;
+  
+  // Month/year label
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  
+  function updateMonthLabel() {
+    const currentMonthLabel = document.getElementById('current-month-label');
+    if (currentMonthLabel) {
+      currentMonthLabel.innerHTML = `${monthNames[currentCalendarMonth]}<br><span style='font-size:18px'>${currentCalendarYear}</span>`;
+    }
+  }
+  
+  function generateCalendar(month, year) {
+    const calendarDays = document.getElementById('calendar-days');
+    if (!calendarDays) return;
+    
+    // Clear existing days
+    calendarDays.innerHTML = '';
+    
+    // Create a lookup map for reservations
+    const reservationsByDate = {};
+    reservationsData.forEach(r => {
+      if (r.start_date && r.end_date) {
+        // Multi-day reservation - add all days in the range to the lookup
+        const startDate = new Date(r.start_date);
+        const endDate = new Date(r.end_date);
+        
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          reservationsByDate[dateKey] = r;
+        }
+      } else if (r.date) {
+        // Single day reservation (backward compatibility)
+        let dateKey = r.date;
+        if (r.date.includes('T')) {
+          dateKey = r.date.split('T')[0];
+        }
+        reservationsByDate[dateKey] = r;
+      }
+    });
+    
+    // Calculate days in month and starting day
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const startingDayOfWeek = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1; // Convert Sunday=0 to Monday=0
+    
+    // Add empty cells for previous month's trailing days
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      const emptyDay = document.createElement('li');
+      emptyDay.className = 'empty-day';
+      emptyDay.style.visibility = 'hidden';
+      calendarDays.appendChild(emptyDay);
+    }
+    
+    // Add days of current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateForDay = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const reservation = reservationsByDate[dateForDay];
+      
+      const dayElement = document.createElement('li');
+      dayElement.textContent = day;
+      dayElement.setAttribute('data-day', day);
+      dayElement.setAttribute('data-date', dateForDay);
+      dayElement.style.cursor = 'pointer';
+      dayElement.onclick = function() { handleDayClick(this); };
+      
+      let dayClass = '';
+      if (reservation) {
+        dayClass = 'reserved-day';
+        dayElement.setAttribute('data-reservation-id', reservation.id);
+        
+        // Add reservation ID display
+        const idSpan = document.createElement('small');
+        idSpan.textContent = `ID: ${reservation.id}`;
+        idSpan.style.display = 'block';
+        idSpan.style.fontSize = '8px';
+        idSpan.style.color = '#fff';
+        dayElement.appendChild(idSpan);
+      }
+      
+      // Check if day is in the past
+      const today = new Date();
+      const dayDate = new Date(year, month, day);
+      if (dayDate < today.setHours(0, 0, 0, 0)) {
+        dayClass += ' past-date';
+      }
+      
+      dayElement.className = dayClass;
+      calendarDays.appendChild(dayElement);
+    }
+    
+    // Setup hover handlers for reserved days
+    setTimeout(setupHoverHandlers, 100);
+  }
+  
+  function changeMonth(direction) {
+    currentCalendarMonth += direction;
+    
+    if (currentCalendarMonth > 11) {
+      currentCalendarMonth = 0;
+      currentCalendarYear++;
+    } else if (currentCalendarMonth < 0) {
+      currentCalendarMonth = 11;
+      currentCalendarYear--;
+    }
+    
+    updateMonthLabel();
+    generateCalendar(currentCalendarMonth, currentCalendarYear);
+  }
+  
+  // Initialize calendar on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    updateMonthLabel();
+    generateCalendar(currentCalendarMonth, currentCalendarYear);
+  });
+  
+  // If DOM is already loaded, initialize immediately
+  if (document.readyState === 'loading') {
+    // Still loading, wait for DOMContentLoaded
+  } else {
+    // Already loaded
+    updateMonthLabel();
+    generateCalendar(currentCalendarMonth, currentCalendarYear);
+  }
+
+  // Date mode toggle
+  const singleDateRadio = document.getElementById('single-date');
+  const multiDateRadio = document.getElementById('multi-date');
+  const dateInput = document.getElementById('date');
+  const multiDateFields = document.getElementById('multi-date-fields');
+  const startDateInput = document.getElementById('start-date');
+  const endDateInput = document.getElementById('end-date');
+  
+  if (singleDateRadio) {
+    singleDateRadio.addEventListener('change', function() {
+      if (this.checked) {
+        if (dateInput) dateInput.style.display = 'block';
+        if (dateInput) dateInput.required = true;
+        if (multiDateFields) multiDateFields.style.display = 'none';
+        if (startDateInput) startDateInput.required = false;
+        if (endDateInput) endDateInput.required = false;
+      }
+    });
+  }
+  
+  if (multiDateRadio) {
+    multiDateRadio.addEventListener('change', function() {
+      if (this.checked) {
+        if (dateInput) dateInput.style.display = 'none';
+        if (dateInput) dateInput.required = false;
+        if (multiDateFields) multiDateFields.style.display = 'block';
+        if (startDateInput) startDateInput.required = true;
+        if (endDateInput) endDateInput.required = true;
+      }
+    });
+  }
+
+  // Refresh dashboard when building, floor, or room changes (only if elements exist)
+  const buildingSelect = document.getElementById('building');
+  const floorSelect = document.getElementById('floor');
+  const roomSelect = document.getElementById('room');
+  
+  if (buildingSelect && floorSelect && roomSelect) {
+    function refreshDashboard() {
+      const building = buildingSelect.value;
+      const floor = floorSelect.value;
+      const room = roomSelect.value;
+      window.location.href = `/dashboard?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}&room=${encodeURIComponent(room)}`;
+    }
+    
+    buildingSelect.addEventListener('change', refreshDashboard);
+    floorSelect.addEventListener('change', refreshDashboard);
+    roomSelect.addEventListener('change', refreshDashboard);
+  }
+
+  // Date validation for multi-date selection
+  function validateDates() {
+    if (!multiDateRadio.checked) return true; // Only validate when multi-date is selected
+    
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (end <= start) {
+        endDateInput.setCustomValidity('End date must be later than start date');
+        return false;
+      } else {
+        endDateInput.setCustomValidity('');
+        return true;
+      }
+    }
+    return true;
+  }
+
+  // Update end date minimum when start date changes
+  if (startDateInput) {
+    startDateInput.addEventListener('change', function() {
+      if (this.value && endDateInput) {
+        const startDate = new Date(this.value);
+        const nextDay = new Date(startDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        endDateInput.min = nextDay.toISOString().split('T')[0];
+      }
+      validateDates();
+    });
+  }
+  
+  if (endDateInput) {
+    endDateInput.addEventListener('change', validateDates);
+  }
+
+  // Time validation
+  const startTimeSelect = document.getElementById('start-time');
+  const endTimeSelect = document.getElementById('end-time');
+
+  function validateTimes() {
+    const startTime = startTimeSelect.value;
+    const endTime = endTimeSelect.value;
+    
+    if (startTime && endTime) {
+      const start = new Date('2000-01-01 ' + startTime);
+      const end = new Date('2000-01-01 ' + endTime);
+      
+      if (end <= start) {
+        endTimeSelect.setCustomValidity('End time must be later than start time');
+        return false;
+      } else {
+        endTimeSelect.setCustomValidity('');
+        return true;
+      }
+    }
+    return true;
+  }
+
+  if (startTimeSelect) {
+    startTimeSelect.addEventListener('change', validateTimes);
+  }
+  if (endTimeSelect) {
+    endTimeSelect.addEventListener('change', validateTimes);
+  }
+
+  // Form validation on submit (only if form exists)
+  const reservationForm = document.getElementById('reservation-form');
+  if (reservationForm) {
+    reservationForm.addEventListener('submit', function(e) {
+      // Get fresh element references
+      const buildingSelect = document.getElementById('building');
+      const floorSelect = document.getElementById('floor');
+      const roomSelect = document.getElementById('room');
+      const startTimeSelect = document.getElementById('start-time');
+      const endTimeSelect = document.getElementById('end-time');
+      const singleDateRadio = document.getElementById('single-date');
+      const multiDateRadio = document.getElementById('multi-date');
+      const startDateInput = document.getElementById('start-date');
+      const endDateInput = document.getElementById('end-date');
+      
+      // Check all required fields based on selected mode
+      const requiredFields = [
+        { element: buildingSelect, name: 'Building' },
+        { element: floorSelect, name: 'Floor' },
+        { element: roomSelect, name: 'Room' },
+        { element: document.getElementById('reservation-name'), name: 'Reservation Name' },
+        { element: document.getElementById('contact-info'), name: 'Contact Info' },
+        { element: startTimeSelect, name: 'Start Time' },
+        { element: endTimeSelect, name: 'End Time' }
+      ];
+
+      // Add date fields based on selected mode
+      if (singleDateRadio && singleDateRadio.checked) {
+        requiredFields.push({ element: document.getElementById('date'), name: 'Date' });
+      } else if (multiDateRadio && multiDateRadio.checked) {
+        requiredFields.push(
+          { element: startDateInput, name: 'Start Date' },
+          { element: endDateInput, name: 'End Date' }
+        );
+      }
+
+      let firstError = null;
+      let hasError = false;
+
+      // Check each required field
+      requiredFields.forEach(field => {
+        if (field.element && (!field.element.value || field.element.value.trim() === '')) {
+          field.element.style.borderColor = '#dc3545';
+          if (!firstError) {
+            firstError = field.element;
+          }
+          hasError = true;
+        } else if (field.element) {
+          field.element.style.borderColor = '#ccc';
+        }
+      });
+
+      // Check time validation
+      if (!validateTimes()) {
+        hasError = true;
+        if (!firstError && endTimeSelect) {
+          firstError = endTimeSelect;
+        }
+      }
+
+      // Check date validation for multi-date mode
+      if (!validateDates()) {
+        hasError = true;
+        if (!firstError && endDateInput) {
+          firstError = endDateInput;
+        }
+      }
+
+      if (hasError) {
+        e.preventDefault();
+        if (firstError) {
+          // Scroll to first error field within sidebar
+          firstError.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          firstError.focus();
+        }
+        let errorMessage = 'Please fill in all required fields';
+        if (!validateTimes()) {
+          errorMessage += ' and ensure end time is later than start time';
+        }
+        if (!validateDates()) {
+          errorMessage += ' and ensure end date is later than start date';
+        }
+        errorMessage += '.';
+        alert(errorMessage);
+        return false;
+      }
+    });
+  }
+
+  // Simple direct click handler - get ID and show reservation info
+  function handleDayClick(dayElement) {
+    const reservationId = dayElement.getAttribute('data-reservation-id');
+    
+    if (reservationId && reservationId !== '' && reservationId !== 'null') {
+      // Immediately redirect to show reservation info (preserving current month/year)
+      const currentBuilding = '<%= building %>';
+      const currentFloor = '<%= floor %>';
+      const currentRoom = '<%= room %>';
+      
+      window.location.href = `/dashboard?view=reservation-info&id=${reservationId}&building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}&month=${currentCalendarMonth}&year=${currentCalendarYear}`;
+    }
+  }
+
+  // Add tooltip functionality for reserved days and selection
+  const tooltip = document.createElement('div');
+  tooltip.className = 'reservation-tooltip';
+  tooltip.style.display = 'none';
+  document.body.appendChild(tooltip);
+
+  let selectedReservationDays = [];
+
+  // Wait for DOM to be fully loaded
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up hover handlers');
+    setupHoverHandlers();
+  });
+
+  // If DOM is already loaded, setup handlers immediately
+  if (document.readyState === 'loading') {
+    // Still loading, wait for DOMContentLoaded
+  } else {
+    // Already loaded
+    setupHoverHandlers();
+  }
+
+  function setupHoverHandlers() {
+    const reservedDays = document.querySelectorAll('.reserved-day');
+    console.log('Found reserved days for hover:', reservedDays.length);
+    
+    reservedDays.forEach(day => {
+      // Tooltip functionality
+      day.addEventListener('mouseenter', function(e) {
+        tooltip.innerHTML = `<strong>Reserved Day</strong><br><em>Click to select, double-click for info</em>`;
+        tooltip.style.display = 'block';
+        tooltip.style.left = e.pageX + 10 + 'px';
+        tooltip.style.top = e.pageY + 10 + 'px';
+      });
+
+      day.addEventListener('mouseleave', function() {
+        tooltip.style.display = 'none';
+      });
+
+      day.addEventListener('mousemove', function(e) {
+        tooltip.style.left = e.pageX + 10 + 'px';
+        tooltip.style.top = e.pageY + 10 + 'px';
+      });
+    });
+  }
+
+  // Functions for reservation info actions
+  function editReservation(reservationId) {
+    const currentBuilding = '<%= building %>';
+    const currentFloor = '<%= floor %>';
+    const currentRoom = '<%= room %>';
+    
+    window.location.href = `/dashboard?view=edit-reservation&id=${reservationId}&building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}`;
+  }
+
+  function goBackToDashboard() {
+    const currentBuilding = '<%= building %>';
+    const currentFloor = '<%= floor %>';
+    const currentRoom = '<%= room %>';
+    
+    window.location.href = `/dashboard?building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}&month=${currentCalendarMonth}&year=${currentCalendarYear}`;
+  }
+
+  // Functions for reservation info actions
+  function editReservation(reservationId) {
+    const currentBuilding = '<%= building %>';
+    const currentFloor = '<%= floor %>';
+    const currentRoom = '<%= room %>';
+    
+    window.location.href = `/dashboard?view=edit-reservation&id=${reservationId}&building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}&month=${currentCalendarMonth}&year=${currentCalendarYear}`;
+  }
+
+  function goBackToDashboard() {
+    const currentBuilding = '<%= building %>';
+    const currentFloor = '<%= floor %>';
+    const currentRoom = '<%= room %>';
+    
+    window.location.href = `/dashboard?building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}&month=${currentCalendarMonth}&year=${currentCalendarYear}`;
+  }
+
+  // Delete reservation function
+  function deleteReservation(reservationId) {
+    if (confirm('Are you sure you want to delete this reservation?')) {
+      fetch(`/delete-reservation/${reservationId}`, {
+        method: 'POST',
+        credentials: 'same-origin'
+      }).then(response => {
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to delete reservation');
+        }
+      });
+    }
+  }
+
+  // Show new reservation form with calendar state preservation
+  function showNewReservation() {
+    const currentBuilding = '<%= building %>';
+    const currentFloor = '<%= floor %>';
+    const currentRoom = '<%= room %>';
+    
+    window.location.href = `/dashboard?view=new-reservation&building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}&month=${currentCalendarMonth}&year=${currentCalendarYear}`;
+  }
+
+  // Handle room selection changes
+  document.addEventListener('DOMContentLoaded', function() {
+    const buildingSelect = document.getElementById('buildingSelect');
+    const floorSelect = document.getElementById('floorSelect');
+    const roomSelect = document.getElementById('roomSelect');
+    
+    function updateRoom() {
+      const building = buildingSelect.value;
+      const floor = floorSelect.value;
+      const room = roomSelect.value;
+      const currentView = '<%= sidebarView %>';
+      
+      let url = `/dashboard?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}&room=${encodeURIComponent(room)}&month=${currentCalendarMonth}&year=${currentCalendarYear}`;
+      
+      // Preserve the current view if it's not default
+      if (currentView && currentView !== 'default') {
+        url += `&view=${encodeURIComponent(currentView)}`;
+      }
+      
+      window.location.href = url;
+    }
+    
+    if (buildingSelect) buildingSelect.addEventListener('change', updateRoom);
+    if (floorSelect) floorSelect.addEventListener('change', updateRoom);
+    if (roomSelect) roomSelect.addEventListener('change', updateRoom);
+  });
+</script>
+<style>
+  /* Styles moved to dashboard.css */
+</style>
+</body>
+</html>

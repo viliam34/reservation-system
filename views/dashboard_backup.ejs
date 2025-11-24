@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Room Reservations</title>
+  <link rel="stylesheet" href="/styles/dashboard.css">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<header class="navbar">
+  <h1>Room Reservations</h1>
+  <nav>
+    <a href="/reservations">Edit Reservation</a>
+    <a href="/dashboard?view=new-reservation&building=<%= building %>&floor=<%= floor %>&room=<%= room %>">New Reservation</a>
+    <a href="#">Cancel Reservation</a>
+  </nav>
+  <form action="/logout" method="GET" style="display:inline;">
+    <button type="submit" style="background:#dc3545; color:#fff; border:none; border-radius:5px; padding:0.5rem 1rem; font-size:1rem; cursor:pointer;">Logout</button>
+  </form>
+</header>
+<main class="container">
+  <% if (typeof building === 'undefined') { var building = 'building1'; } %>
+  <% if (typeof floor === 'undefined') { var floor = 'floor1'; } %>
+  <% if (typeof room === 'undefined') { var room = 'room1'; } %>
+  <aside class="sidebar-container">
+    <% if (sidebarView === 'new-reservation') { %>
+      <%- include('./includes/reservation-form') %>
+    <% } else if (sidebarView === 'edit-reservation' && selectedReservation) { %>
+      <%- include('./includes/edit-reservation-form') %>
+    <% } else { %>
+      <div class="sidebar" style="max-width: 320px; margin: 0 auto; padding: 1rem; box-sizing: border-box;">
+        <h3>Welcome to Room Reservations</h3>
+        <p>Please select an option from the navigation above to get started:</p>
+        <ul style="list-style: none; padding: 0; margin-top: 2rem;">
+          <li style="margin-bottom: 1rem;">📝 <strong>Edit Reservation</strong> - Click on a reserved day to modify</li>
+          <li style="margin-bottom: 1rem;">➕ <strong>New Reservation</strong> - Create a new room booking</li>
+          <li style="margin-bottom: 1rem;">❌ <strong>Cancel Reservation</strong> - Remove existing bookings</li>
+        </ul>
+      </div>
+    <% } %>
+  </aside>
+  <section class="calendar">
+    <div class="month">
+      <ul>
+        <li class="prev">&#10094;</li>
+          <li class="current-month" id="current-month-label"></li>
+        <li class="next">&#10095;</li>
+      </ul>
+    </div>
+    <ul class="weekdays">
+      <li>Mo</li>
+      <li>Tu</li>
+      <li>We</li>
+      <li>Th</li>
+      <li>Fr</li>
+      <li>Sa</li>
+      <li>Su</li>
+    </ul>
+    <ul class="days">
+      <% 
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        for(let d=1; d<=31; d++) { 
+          let dayClass = "";
+          let reservationInfo = "";
+          if (typeof reservations !== 'undefined' && reservations.length > 0) {
+            const dayReservations = reservations.filter(r => {
+              const resDate = new Date(r.date);
+              return resDate.getDate() === d && resDate.getMonth() === currentMonth && resDate.getFullYear() === currentYear;
+            });
+            if (dayReservations.length > 0) {
+              dayClass = "reserved-day";
+              reservationInfo = dayReservations.map(r => `${r.start_time} - ${r.end_time}<br>For: ${r.reservation_name}<br>Contact: ${r.contact_info}<br>By: ${r.username}`).join('<br><br>');
+            }
+          }
+      %>
+        <li class="<%= dayClass %>" <%= reservationInfo ? `data-reservation="${reservationInfo}"` : '' %>><%= d %></li>
+      <% } %>
+    </ul>
+    <section class="hours">
+      <h2>Hours</h2>
+      <button id="clear-hours">Clear Hours</button>
+      <ul>
+        <% for(let h=1; h<=24; h++) { %>
+          <li><%= h %></li>
+        <% } %>
+      </ul>
+    </section>
+  </section>
+</main>
+<script>
+  // Month/year label
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+  const now = new Date();
+  const currentMonthLabel = document.getElementById('current-month-label');
+  if (currentMonthLabel) {
+    currentMonthLabel.innerHTML = `${monthNames[now.getMonth()]}<br><span style='font-size:18px'>${now.getFullYear()}</span>`;
+  }
+
+  // Date mode toggle
+  const singleDateRadio = document.getElementById('single-date');
+  const multiDateRadio = document.getElementById('multi-date');
+  const dateInput = document.getElementById('date');
+  const multiDateFields = document.getElementById('multi-date-fields');
+  const startDateInput = document.getElementById('start-date');
+  const endDateInput = document.getElementById('end-date');
+  
+  singleDateRadio.addEventListener('change', function() {
+    if (this.checked) {
+      dateInput.style.display = 'block';
+      dateInput.required = true;
+      multiDateFields.style.display = 'none';
+      startDateInput.required = false;
+      endDateInput.required = false;
+    }
+  });
+  multiDateRadio.addEventListener('change', function() {
+    if (this.checked) {
+      dateInput.style.display = 'none';
+      dateInput.required = false;
+      multiDateFields.style.display = 'block';
+      startDateInput.required = true;
+      endDateInput.required = true;
+    }
+  });
+
+  // Refresh dashboard when building, floor, or room changes (only if elements exist)
+  const buildingSelect = document.getElementById('building');
+  const floorSelect = document.getElementById('floor');
+  const roomSelect = document.getElementById('room');
+  
+  if (buildingSelect && floorSelect && roomSelect) {
+    function refreshDashboard() {
+      const building = buildingSelect.value;
+      const floor = floorSelect.value;
+      const room = roomSelect.value;
+      window.location.href = `/dashboard?building=${encodeURIComponent(building)}&floor=${encodeURIComponent(floor)}&room=${encodeURIComponent(room)}`;
+    }
+    
+    buildingSelect.addEventListener('change', refreshDashboard);
+    floorSelect.addEventListener('change', refreshDashboard);
+    roomSelect.addEventListener('change', refreshDashboard);
+  }
+
+  // Date validation for multi-date selection
+  function validateDates() {
+    if (!multiDateRadio.checked) return true; // Only validate when multi-date is selected
+    
+    const startDate = startDateInput.value;
+    const endDate = endDateInput.value;
+    
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      if (end <= start) {
+        endDateInput.setCustomValidity('End date must be later than start date');
+        return false;
+      } else {
+        endDateInput.setCustomValidity('');
+        return true;
+      }
+    }
+    return true;
+  }
+
+  // Update end date minimum when start date changes
+  startDateInput.addEventListener('change', function() {
+    if (this.value) {
+      const startDate = new Date(this.value);
+      const nextDay = new Date(startDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      endDateInput.min = nextDay.toISOString().split('T')[0];
+    }
+    validateDates();
+  });
+  
+  endDateInput.addEventListener('change', validateDates);
+
+  // Time validation
+  const startTimeSelect = document.getElementById('start-time');
+  const endTimeSelect = document.getElementById('end-time');
+  const reservationForm = document.getElementById('reservation-form');
+
+  function validateTimes() {
+    const startTime = startTimeSelect.value;
+    const endTime = endTimeSelect.value;
+    
+    if (startTime && endTime) {
+      const start = new Date('2000-01-01 ' + startTime);
+      const end = new Date('2000-01-01 ' + endTime);
+      
+      if (end <= start) {
+        endTimeSelect.setCustomValidity('End time must be later than start time');
+        return false;
+      } else {
+        endTimeSelect.setCustomValidity('');
+        return true;
+      }
+    }
+    return true;
+  }
+
+  startTimeSelect.addEventListener('change', validateTimes);
+  endTimeSelect.addEventListener('change', validateTimes);
+
+  // Form validation on submit (only if form exists)
+  const reservationForm = document.getElementById('reservation-form');
+  if (reservationForm) {
+    reservationForm.addEventListener('submit', function(e) {
+      // Get fresh element references
+      const buildingSelect = document.getElementById('building');
+      const floorSelect = document.getElementById('floor');
+      const roomSelect = document.getElementById('room');
+      const startTimeSelect = document.getElementById('start-time');
+      const endTimeSelect = document.getElementById('end-time');
+      const singleDateRadio = document.getElementById('single-date');
+      const multiDateRadio = document.getElementById('multi-date');
+      const startDateInput = document.getElementById('start-date');
+      const endDateInput = document.getElementById('end-date');
+      
+      // Check all required fields based on selected mode
+      const requiredFields = [
+        { element: buildingSelect, name: 'Building' },
+        { element: floorSelect, name: 'Floor' },
+        { element: roomSelect, name: 'Room' },
+        { element: document.getElementById('reservation-name'), name: 'Reservation Name' },
+        { element: document.getElementById('contact-info'), name: 'Contact Info' },
+        { element: startTimeSelect, name: 'Start Time' },
+        { element: endTimeSelect, name: 'End Time' }
+      ];
+
+      // Add date fields based on selected mode
+      if (singleDateRadio && singleDateRadio.checked) {
+        requiredFields.push({ element: document.getElementById('date'), name: 'Date' });
+      } else if (multiDateRadio && multiDateRadio.checked) {
+        requiredFields.push(
+          { element: startDateInput, name: 'Start Date' },
+          { element: endDateInput, name: 'End Date' }
+        );
+      }
+
+      let firstError = null;
+      let hasError = false;
+
+      // Check each required field
+      requiredFields.forEach(field => {
+        if (field.element && (!field.element.value || field.element.value.trim() === '')) {
+          field.element.style.borderColor = '#dc3545';
+          if (!firstError) {
+            firstError = field.element;
+          }
+          hasError = true;
+        } else if (field.element) {
+          field.element.style.borderColor = '#ccc';
+        }
+      });
+
+      // Check time validation
+      if (!validateTimes()) {
+        hasError = true;
+        if (!firstError && endTimeSelect) {
+          firstError = endTimeSelect;
+        }
+      }
+
+      // Check date validation for multi-date mode
+      if (!validateDates()) {
+        hasError = true;
+        if (!firstError && endDateInput) {
+          firstError = endDateInput;
+        }
+      }
+
+      if (hasError) {
+        e.preventDefault();
+        if (firstError) {
+          // Scroll to first error field within sidebar
+          firstError.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center',
+            inline: 'nearest'
+          });
+          firstError.focus();
+        }
+        let errorMessage = 'Please fill in all required fields';
+        if (!validateTimes()) {
+          errorMessage += ' and ensure end time is later than start time';
+        }
+        if (!validateDates()) {
+          errorMessage += ' and ensure end date is later than start date';
+        }
+        errorMessage += '.';
+        alert(errorMessage);
+        return false;
+      }
+    });
+  }
+
+  // Add tooltip functionality for reserved days and selection
+  const tooltip = document.createElement('div');
+  tooltip.className = 'reservation-tooltip';
+  tooltip.style.display = 'none';
+  document.body.appendChild(tooltip);
+
+  let selectedReservationDays = [];
+
+  document.querySelectorAll('.reserved-day[data-reservation]').forEach(day => {
+    // Tooltip functionality
+    day.addEventListener('mouseenter', function(e) {
+      const reservationInfo = this.getAttribute('data-reservation');
+      tooltip.innerHTML = `<strong>Reserved:</strong><br>${reservationInfo}<br><em>Click to edit</em>`;
+      tooltip.style.display = 'block';
+      tooltip.style.left = e.pageX + 10 + 'px';
+      tooltip.style.top = e.pageY + 10 + 'px';
+    });
+
+    day.addEventListener('mouseleave', function() {
+      tooltip.style.display = 'none';
+    });
+
+    day.addEventListener('mousemove', function(e) {
+      tooltip.style.left = e.pageX + 10 + 'px';
+      tooltip.style.top = e.pageY + 10 + 'px';
+    });
+
+    // Click to select reservation for editing
+    day.addEventListener('click', function(e) {
+      e.preventDefault();
+      const dayNumber = parseInt(this.textContent);
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
+      const selectedDate = new Date(currentYear, currentMonth, dayNumber);
+      const dateString = selectedDate.toISOString().split('T')[0];
+      
+      // Get reservation data from the data attribute
+      const reservationInfo = this.getAttribute('data-reservation');
+      if (reservationInfo) {
+        console.log('Clicking on reserved day:', dateString);
+        
+        // Clear previous selections
+        document.querySelectorAll('.selected-reservation').forEach(el => {
+          el.classList.remove('selected-reservation');
+        });
+        
+        // Highlight selected day(s)
+        this.classList.add('selected-reservation');
+        
+        // Navigate to edit form using date-based lookup
+        const currentBuilding = '<%= building %>';
+        const currentFloor = '<%= floor %>';
+        const currentRoom = '<%= room %>';
+        
+        const editUrl = `/dashboard?view=edit-reservation&date=${dateString}&building=${encodeURIComponent(currentBuilding)}&floor=${encodeURIComponent(currentFloor)}&room=${encodeURIComponent(currentRoom)}`;
+        console.log('Navigating to:', editUrl);
+        
+        window.location.href = editUrl;
+      }
+    });
+  });
+
+  // Delete reservation function
+  function deleteReservation(reservationId) {
+    if (confirm('Are you sure you want to delete this reservation?')) {
+      fetch(`/delete-reservation/${reservationId}`, {
+        method: 'POST',
+        credentials: 'same-origin'
+      }).then(response => {
+        if (response.ok) {
+          window.location.reload();
+        } else {
+          alert('Failed to delete reservation');
+        }
+      });
+    }
+  }
+</script>
+<style>
+  /* Styles moved to dashboard.css */
+</style>
+</body>
+</html>
