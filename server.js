@@ -58,13 +58,9 @@ createTables()
 app.set("view engine", "ejs")
 
 
-app.use(express.static('public/'));
-app.use((req, res, next) => {
-  if (req.url.endsWith('.css')) {
-    res.setHeader('Content-Type', 'text/css');
-  }
-  next();
-});
+const path = require('path')
+
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(cookieParser())
 app.use(express.urlencoded({extended:false}))
@@ -522,3 +518,4 @@ app.listen(3000, () => {
     console.log("Server is running on http://localhost:3000")
 
 })
+
