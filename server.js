@@ -57,14 +57,9 @@ createTables()
 
 app.set("view engine", "ejs")
 
+const path = require('path')
 
-app.use(express.static('public/'));
-app.use((req, res, next) => {
-  if (req.url.endsWith('.css')) {
-    res.setHeader('Content-Type', 'text/css');
-  }
-  next();
-});
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(cookieParser())
 app.use(express.urlencoded({extended:false}))

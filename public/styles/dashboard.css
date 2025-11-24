@@ -1,0 +1,435 @@
+/* Modernized Styles */
+
+/* General Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #ffffff;
+  color: #444;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f8f9fa;
+  padding: 1rem 2rem;
+  color: #333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.navbar h1 {
+  font-size: 1.8rem;
+  flex: 1;
+}
+
+.navbar nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex: 2;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.navbar a {
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: 2px solid #007bff;
+}
+
+.navbar a:hover {
+  background-color: #0056b3;
+  border-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar form {
+  position: absolute;
+  right: 0.5cm;
+}
+
+/* Dropdown */
+.dropdown {
+  position: relative;
+}
+
+.dropdown .dropbtn {
+  background-color: #1e293b;
+  color: #fff;
+  border: none;
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.dropdown .dropbtn:hover {
+  background-color: #334155;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #fff;
+  min-width: 200px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.dropdown-content a {
+  color: #333;
+  padding: 0.8rem 1.2rem;
+  text-decoration: none;
+  display: block;
+  transition: background-color 0.3s;
+}
+
+.dropdown-content a:hover {
+  background-color: #e2e8f0;
+}
+
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Sidebar */
+.sidebar-container {
+  background-color: #f1f3f5;
+  color: #333;
+  padding: 1rem;
+  height: 100vh;
+  overflow-y: auto;
+  max-height: 100vh;
+}
+
+.sidebar {
+  max-width: 320px;
+  margin: 0 auto;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.sidebar-container a {
+  display: block;
+  color: #007bff;
+  text-decoration: none;
+  padding: 0.8rem 1rem;
+  margin: 0.5rem 0;
+  border-radius: 0.5rem;
+  transition: background-color 0.3s;
+}
+
+.sidebar-container a:hover {
+  background-color: #e9ecef;
+}
+
+/* Modernized Dropdown Styles */
+.sidebar label {
+  display: block;
+  margin: 10px 0 5px;
+  font-weight: bold;
+  color: #333;
+}
+
+.sidebar select {
+  width: 100%;
+  padding: 5px; /* Compact padding */
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+  font-size: 0.9rem; /* Slightly smaller font size */
+  color: #333;
+  margin-bottom: 15px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  position: relative; /* Ensure dropdown stays in place */
+  height: auto; /* Allow dropdown to adjust height */
+}
+
+.sidebar select option {
+  padding: 5px; /* Compact padding inside options */
+}
+
+.sidebar select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
+  z-index: 10; /* Ensure dropdown appears above other elements */
+}
+
+/* Limit visible options and enable scrolling */
+.sidebar select {
+  overflow-y: auto; /* Enable scrolling */
+  max-height: 120px; /* Show approximately 5 options */
+}
+
+/* Modernized Time Selector Styles */
+.sidebar input[type="time"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f8f9fa;
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 15px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.sidebar input[type="time"]:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  outline: none;
+}
+
+/* Combined Calendar and Hours Section */
+.calendar {
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.calendar .month {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.calendar .month ul {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  list-style: none;
+}
+
+.calendar .month ul li {
+  text-align: center;
+}
+
+.calendar .month ul li.current-month {
+  flex-grow: 1;
+}
+
+.calendar .month ul li.prev,
+.calendar .month ul li.next {
+  cursor: pointer;
+  font-size: 1.5rem;
+  padding: 0 1rem;
+}
+
+.calendar .weekdays,
+.calendar .days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.calendar .weekdays li {
+  color: #6c757d;
+}
+
+.calendar .days li {
+  background-color: #e8f5e8; /* Very light green for free days */
+  color: #333;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  transition: background-color 0.3s;
+  list-style: none; /* Remove dots from days */
+}
+
+.calendar .days li:hover {
+  background-color: #e9ecef;
+}
+
+.calendar .days li.active {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.hours {
+  margin-top: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+.hours h2 {
+  font-size: 1.5rem;
+  color: #007bff;
+  margin-bottom: 1rem;
+}
+
+.hours ul {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+}
+
+.hours li {
+  background-color: #f0f0f0; /* Light gray to indicate availability */
+  color: #333;
+  text-align: center;
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+  transition: background-color 0.3s;
+}
+
+.hours li:hover {
+  background-color: #e0e0e0; /* Slightly darker gray on hover */
+}
+
+/* Style for selected hours */
+.hours li.active-hour {
+  background-color: red;
+  color: white;
+  font-weight: bold;
+}
+
+/* Adjust container layout */
+.container {
+  display: grid;
+  grid-template-columns: 1fr 3fr; /* Sidebar takes 1/4, calendar takes 3/4 */
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem;
+}
+
+.sidebar-container {
+  grid-column: 1;
+}
+
+.calendar {
+  grid-column: 2;
+}
+
+/* Updated Style for Clear Hours Button */
+#clear-hours {
+  margin-top: 15px; /* Add distance from other elements */
+  margin-bottom: 20px; /* Ensure spacing from hour buttons */
+  background-color: #ff6b6b; /* Light red */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+#clear-hours:hover {
+  background-color: #e63946; /* Slightly darker red */
+}
+
+#clear-hours:active {
+  transform: scale(0.95);
+}
+
+/* Required field validation styles */
+.sidebar input:required:invalid {
+  border-color: #dc3545;
+}
+
+.sidebar select:required:invalid {
+  border-color: #dc3545;
+}
+
+.sidebar input:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+.sidebar select:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Responsive Design */
+/* Reserved day style for calendar */
+.reserved-day {
+  background: #ff6b6b !important;
+  color: #fff !important;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.reserved-day:hover {
+  background: #e74c3c !important;
+  transform: scale(1.05);
+}
+
+/* Selected reservation styling */
+.selected-reservation {
+  border: 3px solid #007bff !important;
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5) !important;
+  transform: scale(1.1) !important;
+}
+
+/* Reservation tooltip styles */
+.reservation-tooltip {
+  position: absolute;
+  background: #333;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.4;
+  z-index: 1000;
+  max-width: 200px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+.reservation-tooltip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 10px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 5px solid #333;
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .sidebar-container {
+    height: auto;
+  }
+
+  .calendar {
+    padding: 0.5rem;
+  }
+}
